@@ -1,4 +1,6 @@
 {
 "Metadata:InfoboxWasShown":"Yes",
-"ShouldAutodisassemble:Chem Cell":"Yes"
+"ShouldAutodisassemble:Solar Cell":"Yes",
+"ShouldAutodisassemble:FoldingChair":"Yes",
+"ShouldAutodisassemble:PlasticTree":"Yes"
 }

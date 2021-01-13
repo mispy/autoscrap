@@ -8,7 +8,6 @@ namespace XRL.World.Parts
     [Serializable]
     public class QudUX_AutogetHelper : IPart
     {
-        private static bool TemporarilyIgnoreQudUXSettings;
         private static NameValueBag _AutogetSettings;
         public static NameValueBag AutogetSettings
         {
@@ -27,21 +26,19 @@ namespace XRL.World.Parts
 
         public static bool WantToDisassemble(GameObject obj)
         {
-            if (TemporarilyIgnoreQudUXSettings)
-            {
-                return false;
-            }
-
             bool enabled = AutogetSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
-            return enabled && obj.IsValid() && obj.HasPart("TinkerItem") && obj.Understood() && 
+            return enabled && obj.IsValid() && obj.HasPart("TinkerItem") && obj.Understood() &&
                    !obj.HasTagOrProperty("QuestItem");
         }
 
         public static bool CanToggleAutoDisassemble(GameObject obj)
         {
-            if (obj.HasPart("TinkerItem")) {
+            if (obj.HasPart("TinkerItem"))
+            {
                 return obj.Understood() && obj.GetIntProperty("Scrap") != 1;
-            } else {
+            }
+            else
+            {
                 return false;
             }
         }

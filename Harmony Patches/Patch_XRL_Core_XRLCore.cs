@@ -5,7 +5,7 @@ using static QudUX.HarmonyPatches.PatchHelpers;
 using static QudUX.Concepts.Constants.MethodsAndFields;
 
 namespace QudUX.HarmonyPatches
-{
+{   
     [HarmonyPatch(typeof(XRL.Core.XRLCore))]
     class Patch_XRL_Core_XRLCore
     {
@@ -23,23 +23,10 @@ namespace QudUX.HarmonyPatches
             {
                 if (!patched && Sequence.IsMatchComplete(instruction))
                 {
-                    yield return new CodeInstruction(OpCodes.Call, Events_EmbarkEvent);
                     yield return new CodeInstruction(OpCodes.Call, Events_OnLoadAlwaysEvent);
                     patched = true;
                 }
                 yield return instruction;
-            }
-            if (patched)
-            {
-                PatchHelpers.LogPatchResult("XRLCore.NewGame",
-                    "Patched successfully." /* Enables an event framework that other QudUX features rely on. */ );
-            }
-            else
-            {
-                PatchHelpers.LogPatchResult("XRLCore.NewGame",
-                    "Failed. This patch may not be compatible with the current game version. "
-                    + "Custom tiles chosen during character creation won't be properly applied at game start, "
-                    + "and certain other event-based QudUX features might not work as expected.");
             }
         }
 
@@ -49,7 +36,6 @@ namespace QudUX.HarmonyPatches
         {
             try
             {
-                QudUX.Concepts.Events.SaveLoadEvent();
                 QudUX.Concepts.Events.OnLoadAlwaysEvent();
             }
             catch { }
