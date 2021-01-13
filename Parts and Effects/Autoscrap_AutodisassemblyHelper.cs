@@ -27,20 +27,23 @@ namespace XRL.World.Parts
         public static bool WantToDisassemble(GameObject obj)
         {
             bool enabled = AutoscrapSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
-            return enabled && obj.IsValid() && obj.HasPart("TinkerItem") && obj.Understood() &&
-                   !obj.HasTagOrProperty("QuestItem");
+            return enabled && obj.IsValid() && CanToggleAutoDisassemble(obj);
         }
 
         public static bool CanToggleAutoDisassemble(GameObject obj)
         {
-            if (obj.HasPart("TinkerItem"))
-            {
-                return obj.Understood() && obj.GetIntProperty("Scrap") != 1;
-            }
-            else
-            {
+            var tinkerable = obj.GetPart<TinkerItem>();
+
+            if (tinkerable == null || !tinkerable.CanBeDisassembled())
                 return false;
-            }
+
+            if (obj.GetIntProperty("Scrap") > 0)
+                return false; // Don't interfere with vanilla scrap disassembly
+
+            if (obj.HasTagOrProperty("QuestItem"))
+                return false;
+
+            return true;
         }
 
         public override bool WantEvent(int ID, int cascade)
