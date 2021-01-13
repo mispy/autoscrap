@@ -1,6 +1,8 @@
 ﻿using System;
 using XRL.Language;
 using XRL.UI;
+using XRL.Core;
+using System.IO;
 using Constants = Autoscrap.Concepts.Constants;
 
 namespace XRL.World.Parts
@@ -9,14 +11,19 @@ namespace XRL.World.Parts
     public class Autoscrap_AutodisassemblyHelper : IPart
     {
         private static NameValueBag _AutoscrapSettings;
+        private static string LoadedSettingsGameID;
         public static NameValueBag AutoscrapSettings
         {
             get
             {
-                if (_AutoscrapSettings == null)
+                var currentGameID = XRLCore.Core.Game.GameID;
+                if (LoadedSettingsGameID != currentGameID)
                 {
-                    _AutoscrapSettings = new NameValueBag(Constants.AutoscrapDataFilePath);
+                    // Settings are per-save
+                    var path = Path.Combine(Constants.ModDirectory, $"Autoscrap_{currentGameID}.json");
+                    _AutoscrapSettings = new NameValueBag(path);
                     _AutoscrapSettings.Load();
+                    LoadedSettingsGameID = currentGameID;
                 }
                 return _AutoscrapSettings;
             }
@@ -71,26 +78,7 @@ namespace XRL.World.Parts
         {
             if (E.Command == CmdEnableAutodisassemble)
             {
-                bool bInfoboxShown = AutoscrapSettings.GetValue("Metadata:InfoboxWasShown", "").EqualsNoCase("Yes");
-                if (!bInfoboxShown)
-                {
-                    DialogResult choice = DialogResult.Cancel;
-                    while (choice != DialogResult.Yes && choice != DialogResult.No)
-                    {
-                        choice = Popup.ShowYesNo("Enabling auto-disassembly for " + Grammar.Pluralize(E.Item.DisplayNameOnly) + ".\n\n"
-                            + "Changes to auto-pickup preferences will apply to ALL of your characters. "
-                            + "If you proceed, this message will not be shown again.\n\nProceed?", false, DialogResult.Cancel);
-                    }
-                    if (choice == DialogResult.Yes)
-                    {
-                        AutoscrapSettings.SetValue("Metadata:InfoboxWasShown", "Yes", FlushToFile: false);
-                        AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
-                    }
-                }
-                else
-                {
-                    AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
-                }
+                AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
             }
             if (E.Command == CmdDisableAutodisassemble)
             {
