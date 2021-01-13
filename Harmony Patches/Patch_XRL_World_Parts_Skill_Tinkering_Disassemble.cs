@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using QudUX.Concepts;
+using XRL.World;
 
 namespace QudUX.HarmonyPatches
 {
@@ -8,13 +9,14 @@ namespace QudUX.HarmonyPatches
     {
         [HarmonyPostfix]
         [HarmonyPatch("WantToDisassemble")]
-        static void Postfix(XRL.World.GameObject __instance, ref bool __result)
+        static void Postfix(GameObject obj,  XRL.World.Parts.Skill.Tinkering_Disassemble __instance, ref bool __result)
         {
-            __result = true;
-            // if (__result == true && Options.UI.EnableAutogetExclusions)
-            // {
-            //     __result = !XRL.World.Parts.QudUX_AutogetHelper.IsAutogetDisabledByQudUX(__instance);
-            // }
+            if (__result) {
+                // Vanilla scrap disassembly
+                __result = true;
+            } else {
+                __result = __instance.ParentObject.IsPlayer() && XRL.World.Parts.QudUX_AutogetHelper.WantToDisassemble(obj); 
+            }
         }
     }
 }

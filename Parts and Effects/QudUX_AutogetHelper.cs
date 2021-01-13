@@ -22,20 +22,28 @@ namespace XRL.World.Parts
                 return _AutogetSettings;
             }
         }
-        public static readonly string CmdDisableAutoget = "QudUX_DisableItemAutoget";
-        public static readonly string CmdEnableAutoget = "QudUX_EnableItemAutoget";
+        public static readonly string CmdDisableAutodisassemble = "QudUX_DisableItemAutodisassemble";
+        public static readonly string CmdEnableAutodisassemble = "QudUX_EnableItemAutodisassemble";
 
-        public static bool IsAutogetDisabledByQudUX(GameObject thing)
+        public static bool WantToDisassemble(GameObject obj)
         {
             if (TemporarilyIgnoreQudUXSettings)
             {
                 return false;
             }
-            else if (thing.Understood() == false) //use default behavior if it hasn't been identified yet
-            {
+
+            bool enabled = AutogetSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
+            return enabled && obj.IsValid() && obj.HasPart("TinkerItem") && obj.Understood() && 
+                   !obj.HasTagOrProperty("QuestItem");
+        }
+
+        public static bool CanToggleAutoDisassemble(GameObject obj)
+        {
+            if (obj.HasPart("TinkerItem")) {
+                return obj.Understood() && obj.GetIntProperty("Scrap") != 1;
+            } else {
                 return false;
             }
-            return AutogetSettings.GetValue($"ShouldAutoget:{thing.Blueprint}", "").EqualsNoCase("No");
         }
 
         public override bool WantEvent(int ID, int cascade)
@@ -45,32 +53,15 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(OwnerGetInventoryActionsEvent E)
         {
-            if (!QudUX.Concepts.Options.UI.EnableAutogetExclusions)
+            if (CanToggleAutoDisassemble(E.Object))
             {
-                return base.HandleEvent(E);
-            }
-            bool wasDropped = E.Object.HasIntProperty("DroppedByPlayer");
-            if (wasDropped)
-            {
-                //temporarily remove property so it doesn't affect ShouldAutoget() logic
-                E.Object.RemoveIntProperty("DroppedByPlayer");
-            }
-            TemporarilyIgnoreQudUXSettings = true;
-            bool isAutogetItem = E.Object.ShouldAutoget();
-            TemporarilyIgnoreQudUXSettings = false;
-            if (wasDropped)
-            {
-                E.Object.SetIntProperty("DroppedByPlayer", 1);
-            }
-            if (isAutogetItem && E.Object.Understood())
-            {
-                if (IsAutogetDisabledByQudUX(E.Object))
+                if (WantToDisassemble(E.Object))
                 {
-                    E.AddAction("Re-enable auto-pickup for this item", "re-enable auto-pickup", CmdEnableAutoget, FireOnActor: true);
+                    E.AddAction("Enable autodisassembly on pickup for this item", "disable autodisassemble", CmdDisableAutodisassemble, FireOnActor: true);
                 }
                 else
                 {
-                    E.AddAction("Disable auto-pickup for this item", "disable auto-pickup", CmdDisableAutoget, FireOnActor: true);
+                    E.AddAction("Disable autodisassembly on pickup for this item", "enable autodisassemble", CmdEnableAutodisassemble, FireOnActor: true);
                 }
             }
             return base.HandleEvent(E);
@@ -78,7 +69,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(InventoryActionEvent E)
         {
-            if (E.Command == CmdDisableAutoget)
+            if (E.Command == CmdEnableAutodisassemble)
             {
                 bool bInfoboxShown = AutogetSettings.GetValue("Metadata:InfoboxWasShown", "").EqualsNoCase("Yes");
                 if (!bInfoboxShown)
@@ -86,24 +77,24 @@ namespace XRL.World.Parts
                     DialogResult choice = DialogResult.Cancel;
                     while (choice != DialogResult.Yes && choice != DialogResult.No)
                     {
-                        choice = Popup.ShowYesNo("Disabling auto-pickup for " + Grammar.Pluralize(E.Item.DisplayNameOnly) + ".\n\n"
+                        choice = Popup.ShowYesNo("Enabling auto-disassembly for " + Grammar.Pluralize(E.Item.DisplayNameOnly) + ".\n\n"
                             + "Changes to auto-pickup preferences will apply to ALL of your characters. "
                             + "If you proceed, this message will not be shown again.\n\nProceed?", false, DialogResult.Cancel);
                     }
                     if (choice == DialogResult.Yes)
                     {
                         AutogetSettings.SetValue("Metadata:InfoboxWasShown", "Yes", FlushToFile: false);
-                        AutogetSettings.SetValue($"ShouldAutoget:{E.Item.Blueprint}", "No");
+                        AutogetSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
                     }
                 }
                 else
                 {
-                    AutogetSettings.SetValue($"ShouldAutoget:{E.Item.Blueprint}", "No");
+                    AutogetSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
                 }
             }
-            if (E.Command == CmdEnableAutoget)
+            if (E.Command == CmdDisableAutodisassemble)
             {
-                AutogetSettings.Bag.Remove($"ShouldAutoget:{E.Item.Blueprint}");
+                AutogetSettings.Bag.Remove($"ShouldAutodisassemble:{E.Item.Blueprint}");
                 AutogetSettings.Flush();
             }
             return base.HandleEvent(E);
