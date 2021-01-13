@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
-using QudUX.Concepts;
 using XRL.World;
+using XRL.World.Parts;
 
 namespace QudUX.HarmonyPatches
 {
@@ -15,7 +15,7 @@ namespace QudUX.HarmonyPatches
                 // Vanilla scrap disassembly
                 __result = true;
             } else {
-                __result = __instance.ParentObject.IsPlayer() && XRL.World.Parts.QudUX_AutogetHelper.WantToDisassemble(obj); 
+                __result = __instance.ParentObject.IsPlayer() && QudUX_AutogetHelper.WantToDisassemble(obj); 
             }
         }
     }
