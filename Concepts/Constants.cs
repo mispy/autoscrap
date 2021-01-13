@@ -12,14 +12,14 @@ using static HarmonyLib.SymbolExtensions;
 using static HarmonyLib.AccessTools;
 using System.IO;
 
-namespace QudUX.Concepts
+namespace Autoscrap.Concepts
 {
     [HasModSensitiveStaticCache]
     public static class Constants
     {
-        public static string AutogetDataFileName => "QudUX_AutogetSettings.json";
+        public static string AutoscrapDataFileName => "Autoscrap_AutodisassemblySettings.json";
 
-        public static string AutogetDataFilePath => Path.Combine(ModDirectory, AutogetDataFileName);
+        public static string AutoscrapDataFilePath => Path.Combine(ModDirectory, AutoscrapDataFileName);
 
         private static string _modDirectory = null;
         public static string ModDirectory
@@ -30,7 +30,7 @@ namespace QudUX.Concepts
                 {
                     ModManager.ForEachMod(delegate (ModInfo mod)
                     {
-                        if (mod?.manifest?.id == "QudUX" || mod?.workshopInfo?.Title == "QudUX")
+                        if (mod?.manifest?.id == "AutoscrapAnything" || mod?.workshopInfo?.Title == "AutoscrapAnything")
                         {
                             _modDirectory = mod.Path;
                             return;

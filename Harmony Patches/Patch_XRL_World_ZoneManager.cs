@@ -4,7 +4,7 @@ using HarmonyLib;
 using XRL.Core;
 using XRL.World.Parts;
 
-namespace QudUX.HarmonyPatches
+namespace Autoscrap.HarmonyPatches
 {   
     [HarmonyPatch(typeof(XRL.World.ZoneManager))]
     class Patch_XRL_World_ZoneManager
@@ -14,7 +14,7 @@ namespace QudUX.HarmonyPatches
         static void Postfix()
         {
             var player = XRLCore.Core.Game.Player.Body;
-            player.RequirePart<QudUX_AutogetHelper>();
+            player.RequirePart<Autoscrap_AutodisassemblyHelper>();
         }
     }
 }

@@ -1,32 +1,32 @@
 ﻿using System;
 using XRL.Language;
 using XRL.UI;
-using QudUX_Constants = QudUX.Concepts.Constants;
+using Constants = Autoscrap.Concepts.Constants;
 
 namespace XRL.World.Parts
 {
     [Serializable]
-    public class QudUX_AutogetHelper : IPart
+    public class Autoscrap_AutodisassemblyHelper : IPart
     {
-        private static NameValueBag _AutogetSettings;
-        public static NameValueBag AutogetSettings
+        private static NameValueBag _AutoscrapSettings;
+        public static NameValueBag AutoscrapSettings
         {
             get
             {
-                if (_AutogetSettings == null)
+                if (_AutoscrapSettings == null)
                 {
-                    _AutogetSettings = new NameValueBag(QudUX_Constants.AutogetDataFilePath);
-                    _AutogetSettings.Load();
+                    _AutoscrapSettings = new NameValueBag(Constants.AutoscrapDataFilePath);
+                    _AutoscrapSettings.Load();
                 }
-                return _AutogetSettings;
+                return _AutoscrapSettings;
             }
         }
-        public static readonly string CmdDisableAutodisassemble = "QudUX_DisableItemAutodisassemble";
-        public static readonly string CmdEnableAutodisassemble = "QudUX_EnableItemAutodisassemble";
+        public static readonly string CmdDisableAutodisassemble = "Autoscrap_DisableItemAutodisassemble";
+        public static readonly string CmdEnableAutodisassemble = "Autoscrap_EnableItemAutodisassemble";
 
         public static bool WantToDisassemble(GameObject obj)
         {
-            bool enabled = AutogetSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
+            bool enabled = AutoscrapSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
             return enabled && obj.IsValid() && obj.HasPart("TinkerItem") && obj.Understood() &&
                    !obj.HasTagOrProperty("QuestItem");
         }
@@ -54,11 +54,11 @@ namespace XRL.World.Parts
             {
                 if (WantToDisassemble(E.Object))
                 {
-                    E.AddAction("Enable autodisassembly on pickup for this item", "disable autodisassemble", CmdDisableAutodisassemble, FireOnActor: true);
+                    E.AddAction("Enable autodisassembly on pickup for this item", "disable autodisassembly", CmdDisableAutodisassemble, FireOnActor: true);
                 }
                 else
                 {
-                    E.AddAction("Disable autodisassembly on pickup for this item", "enable autodisassemble", CmdEnableAutodisassemble, FireOnActor: true);
+                    E.AddAction("Disable autodisassembly on pickup for this item", "enable autodisassembly", CmdEnableAutodisassemble, FireOnActor: true);
                 }
             }
             return base.HandleEvent(E);
@@ -68,7 +68,7 @@ namespace XRL.World.Parts
         {
             if (E.Command == CmdEnableAutodisassemble)
             {
-                bool bInfoboxShown = AutogetSettings.GetValue("Metadata:InfoboxWasShown", "").EqualsNoCase("Yes");
+                bool bInfoboxShown = AutoscrapSettings.GetValue("Metadata:InfoboxWasShown", "").EqualsNoCase("Yes");
                 if (!bInfoboxShown)
                 {
                     DialogResult choice = DialogResult.Cancel;
@@ -80,19 +80,19 @@ namespace XRL.World.Parts
                     }
                     if (choice == DialogResult.Yes)
                     {
-                        AutogetSettings.SetValue("Metadata:InfoboxWasShown", "Yes", FlushToFile: false);
-                        AutogetSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
+                        AutoscrapSettings.SetValue("Metadata:InfoboxWasShown", "Yes", FlushToFile: false);
+                        AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
                     }
                 }
                 else
                 {
-                    AutogetSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
+                    AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
                 }
             }
             if (E.Command == CmdDisableAutodisassemble)
             {
-                AutogetSettings.Bag.Remove($"ShouldAutodisassemble:{E.Item.Blueprint}");
-                AutogetSettings.Flush();
+                AutoscrapSettings.Bag.Remove($"ShouldAutodisassemble:{E.Item.Blueprint}");
+                AutoscrapSettings.Flush();
             }
             return base.HandleEvent(E);
         }

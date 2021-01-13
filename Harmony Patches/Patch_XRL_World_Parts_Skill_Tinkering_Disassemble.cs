@@ -2,7 +2,7 @@
 using XRL.World;
 using XRL.World.Parts;
 
-namespace QudUX.HarmonyPatches
+namespace Autoscrap.HarmonyPatches
 {
     [HarmonyPatch(typeof(XRL.World.Parts.Skill.Tinkering_Disassemble))]
     class Patch_XRL_World_Parts_Skill_Tinkering_Disassemble
@@ -15,7 +15,7 @@ namespace QudUX.HarmonyPatches
                 // Vanilla scrap disassembly
                 __result = true;
             } else {
-                __result = __instance.ParentObject.IsPlayer() && QudUX_AutogetHelper.WantToDisassemble(obj); 
+                __result = __instance.ParentObject.IsPlayer() && Autoscrap_AutodisassemblyHelper.WantToDisassemble(obj); 
             }
         }
     }
