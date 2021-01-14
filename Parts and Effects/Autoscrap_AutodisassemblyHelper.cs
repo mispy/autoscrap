@@ -1,39 +1,21 @@
 ﻿using System;
+using XRL;
 using XRL.Language;
 using XRL.UI;
 using XRL.Core;
 using System.IO;
-using Constants = Autoscrap.Concepts.Constants;
 
 namespace XRL.World.Parts
 {
     [Serializable]
     public class Autoscrap_AutodisassemblyHelper : IPart
     {
-        private static NameValueBag _AutoscrapSettings;
-        private static string LoadedSettingsGameID;
-        public static NameValueBag AutoscrapSettings
-        {
-            get
-            {
-                var currentGameID = XRLCore.Core.Game.GameID;
-                if (LoadedSettingsGameID != currentGameID)
-                {
-                    // Settings are per-save
-                    var path = Path.Combine(Constants.ModDirectory, $"Autoscrap_{currentGameID}.json");
-                    _AutoscrapSettings = new NameValueBag(path);
-                    _AutoscrapSettings.Load();
-                    LoadedSettingsGameID = currentGameID;
-                }
-                return _AutoscrapSettings;
-            }
-        }
         public static readonly string CmdDisableAutodisassemble = "Autoscrap_DisableItemAutodisassemble";
         public static readonly string CmdEnableAutodisassemble = "Autoscrap_EnableItemAutodisassemble";
 
         public static bool WantToDisassemble(GameObject obj)
         {
-            bool enabled = AutoscrapSettings.GetValue($"ShouldAutodisassemble:{obj.Blueprint}", "").EqualsNoCase("Yes");
+            bool enabled = XRLCore.Core.Game.GetStringGameState($"Autoscrap_ShouldAutodisassemble:{obj.Blueprint}").EqualsNoCase("Yes");
             return enabled && obj.IsValid() && CanToggleAutoDisassemble(obj);
         }
 
@@ -50,6 +32,9 @@ namespace XRL.World.Parts
             if (obj.HasTagOrProperty("QuestItem"))
                 return false;
 
+            if (!obj.IsTakeable())
+                return false; // Can't autodisassemble hyperbiotic chairs for now
+
             return true;
         }
 
@@ -64,11 +49,11 @@ namespace XRL.World.Parts
             {
                 if (WantToDisassemble(E.Object))
                 {
-                    E.AddAction("Enable autodisassembly on pickup for this item", "disable autodisassembly", CmdDisableAutodisassemble, FireOnActor: true);
+                    E.AddAction("Enable autodisassembly on pickup for this item", "disable autoscrap", CmdDisableAutodisassemble, FireOnActor: true);
                 }
                 else
                 {
-                    E.AddAction("Disable autodisassembly on pickup for this item", "enable autodisassembly", CmdEnableAutodisassemble, FireOnActor: true);
+                    E.AddAction("Disable autodisassembly on pickup for this item", "enable autoscrap", CmdEnableAutodisassemble, FireOnActor: true);
                 }
             }
             return base.HandleEvent(E);
@@ -78,12 +63,11 @@ namespace XRL.World.Parts
         {
             if (E.Command == CmdEnableAutodisassemble)
             {
-                AutoscrapSettings.SetValue($"ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
-            }
-            if (E.Command == CmdDisableAutodisassemble)
+                XRLCore.Core.Game.SetStringGameState($"Autoscrap_ShouldAutodisassemble:{E.Item.Blueprint}", "Yes");
+            } 
+            else if (E.Command == CmdDisableAutodisassemble)
             {
-                AutoscrapSettings.Bag.Remove($"ShouldAutodisassemble:{E.Item.Blueprint}");
-                AutoscrapSettings.Flush();
+                XRLCore.Core.Game.RemoveStringGameState($"Autoscrap_ShouldAutodisassemble:{E.Item.Blueprint}");
             }
             return base.HandleEvent(E);
         }
