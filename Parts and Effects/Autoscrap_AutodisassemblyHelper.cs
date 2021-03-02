@@ -29,8 +29,8 @@ namespace XRL.World.Parts
             if (obj.GetIntProperty("Scrap") > 0)
                 return false; // Don't interfere with vanilla scrap disassembly
 
-            if (obj.HasTagOrProperty("QuestItem"))
-                return false;
+            if (obj.HasTagOrProperty("QuestItem") || obj.HasProperName)
+                return false; // Don't disassemble quest items or artifacts
 
             if (!obj.IsTakeable())
                 return false; // Can't autodisassemble hyperbiotic chairs for now
